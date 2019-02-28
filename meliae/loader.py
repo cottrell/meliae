@@ -72,7 +72,7 @@ def _from_json(cls, line, temp_cache=None):
               value=val.get('value', None),
               name=val.get('name', None))
     if (obj.type_str == 'str'):
-        if type(obj.value) is unicode:
+        if type(obj.value) is str:
             obj.value = obj.value.encode('latin-1')
     if temp_cache is not None:
         obj._intern_from_cache(temp_cache)
@@ -105,7 +105,7 @@ def _from_line(cls, line, temp_cache=None):
               value=value,
               name=name)
     if (obj.type_str == 'str'):
-        if type(obj.value) is unicode:
+        if type(obj.value) is str:
             obj.value = obj.value.encode('latin-1')
     if temp_cache is not None:
         obj._intern_from_cache(temp_cache)
@@ -173,7 +173,7 @@ class _ObjSummary(object):
             ' Index   Count   %      Size   % Cum     Max Kind'
             ]
         cumulative = 0
-        for i in xrange(min(20, len(self.summaries))):
+        for i in range(min(20, len(self.summaries))):
             summary = self.summaries[i]
             cumulative += summary.total_size
             out.append(
@@ -186,13 +186,13 @@ class _ObjSummary(object):
         return '\n'.join(out)
 
     def by_size(self):
-        summaries = sorted(self.type_summaries.itervalues(),
+        summaries = sorted(iter(self.type_summaries.values()),
                            key=lambda x: (x.total_size, x.count),
                            reverse=True)
         self.summaries = summaries
 
     def by_count(self):
-        summaries = sorted(self.type_summaries.itervalues(),
+        summaries = sorted(iter(self.type_summaries.values()),
                            key=lambda x: (x.count, x.total_size),
                            reverse=True)
         self.summaries = summaries
@@ -243,7 +243,7 @@ class ObjManager(object):
             # cleaned up perfectly by refcounting, so disable gc for this loop.
             gc.disable()
         try:
-            for idx, obj in enumerate(self.objs.itervalues()):
+            for idx, obj in enumerate(self.objs.values()):
                 if self.show_progress and idx & 0x3f == 0:
                     tnow = timer()
                     if tnow - tlast > 0.1:
@@ -267,7 +267,7 @@ class ObjManager(object):
                     t = type(refs)
                     if refs is None:
                         refs = address
-                    elif t in (int, long):
+                    elif t in (int, int):
                         refs = (refs, address)
                     elif t is tuple:
                         if len(refs) >= 5:
@@ -300,7 +300,7 @@ class ObjManager(object):
             if self.show_progress:
                 sys.stderr.write('compute parents %8d / %8d        \r'
                                  % (idx, total))
-            for idx, obj in enumerate(self.objs.itervalues()):
+            for idx, obj in enumerate(self.objs.values()):
                 if self.show_progress and idx & 0x3f == 0:
                     tnow = timer()
                     if tnow - tlast > 0.1:
@@ -314,7 +314,7 @@ class ObjManager(object):
                 else:
                     if refs is None:
                         obj.parents = ()
-                    elif type(refs) in (int, long):
+                    elif type(refs) in (int, int):
                         obj.parents = (refs,)
                     else:
                         # We use a set() to remove duplicate parents
@@ -338,7 +338,7 @@ class ObjManager(object):
         We filter out any reference to modules, frames, types, function globals
         pointers & LRU sideways references.
         """
-        source = lambda:self.objs.itervalues()
+        source = lambda:iter(self.objs.values())
         total_objs = len(self.objs)
         # Add the 'null' object
         self.objs.add(0, '<ex-reference>', 0, [])
@@ -362,7 +362,7 @@ class ObjManager(object):
         """
         summary = _ObjSummary()
         if obj is None:
-            objs = self.objs.itervalues()
+            objs = iter(self.objs.values())
         else:
             objs = obj.iter_recursive_refs(excluding=excluding)
         for obj in objs:
@@ -371,7 +371,7 @@ class ObjManager(object):
 
     def get_all(self, type_str):
         """Return all objects that match a given type."""
-        all = [o for o in self.objs.itervalues() if o.type_str == type_str]
+        all = [o for o in self.objs.values() if o.type_str == type_str]
         all.sort(key=lambda x:(x.size, len(x), x.num_parents),
                  reverse=True)
         return all
@@ -400,7 +400,7 @@ class ObjManager(object):
         total = len(self.objs)
         tlast = timer()-20
         to_be_removed = set()
-        for item_idx, obj in enumerate(self.objs.itervalues()):
+        for item_idx, obj in enumerate(self.objs.values()):
             if obj.type_str in ('str', 'dict', 'tuple', 'list', 'type',
                                 'function', 'wrapper_descriptor',
                                 'code', 'classobj', 'int',
@@ -489,14 +489,14 @@ class ObjManager(object):
 
         This is a dict that only contains strings that point to themselves.
         """
-        for o in self.objs.itervalues():
+        for o in self.objs.values():
             o_len = len(o)
             if o.type_str != 'dict' or o_len == 0 or o.num_parents > 0:
                 # Must be a non-empty dict
                 continue
             # We avoid calling o.children so that we don't have to create
             # proxies for all objects
-            for i in xrange(0, o_len, 2):
+            for i in range(0, o_len, 2):
                 # Technically, o[i].address == o[i+1].address, but the proxy
                 # objects are smart enough to get reused...
                 c_i = o[i]

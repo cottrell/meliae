@@ -91,24 +91,24 @@ class TestSizeOf(tests.TestCase):
         self.assertSizeOf(25, set(range(3)))
         self.assertSizeOf(25, set(range(4)))
         self.assertSizeOf(25, set(range(5)))
-        self.assertSizeOf(25, frozenset(range(3)))
+        self.assertSizeOf(25, frozenset(list(range(3))))
 
     def test_medium_sets(self):
         self.assertSizeOf(25 + 512*2, set(range(100)))
-        self.assertSizeOf(25 + 512*2, frozenset(range(100)))
+        self.assertSizeOf(25 + 512*2, frozenset(list(range(100))))
 
     def test_empty_dict(self):
         self.assertSizeOf(31, dict())
 
     def test_small_dict(self):
-        self.assertSizeOf(31, dict.fromkeys(range(1)))
-        self.assertSizeOf(31, dict.fromkeys(range(2)))
-        self.assertSizeOf(31, dict.fromkeys(range(3)))
-        self.assertSizeOf(31, dict.fromkeys(range(4)))
-        self.assertSizeOf(31, dict.fromkeys(range(5)))
+        self.assertSizeOf(31, dict.fromkeys(list(range(1))))
+        self.assertSizeOf(31, dict.fromkeys(list(range(2))))
+        self.assertSizeOf(31, dict.fromkeys(list(range(3))))
+        self.assertSizeOf(31, dict.fromkeys(list(range(4))))
+        self.assertSizeOf(31, dict.fromkeys(list(range(5))))
 
     def test_medium_dict(self):
-        self.assertSizeOf(31+512*3, dict.fromkeys(range(100)))
+        self.assertSizeOf(31+512*3, dict.fromkeys(list(range(100))))
 
     def test_basic_types(self):
         type_size = 106
@@ -147,14 +147,14 @@ class TestSizeOf(tests.TestCase):
         self.assertSizeOf(4, Two())
 
     def test_empty_unicode(self):
-        self.assertSizeOf(6, u'', extra_size=0, has_gc=False)
+        self.assertSizeOf(6, '', extra_size=0, has_gc=False)
 
     def test_small_unicode(self):
-        self.assertSizeOf(6, u'a', extra_size=_scanner._unicode_size*1,
+        self.assertSizeOf(6, 'a', extra_size=_scanner._unicode_size*1,
                           has_gc=False)
-        self.assertSizeOf(6, u'abcd', extra_size=_scanner._unicode_size*4,
+        self.assertSizeOf(6, 'abcd', extra_size=_scanner._unicode_size*4,
                           has_gc=False)
-        self.assertSizeOf(6, u'\xbe\xe5', extra_size=_scanner._unicode_size*2,
+        self.assertSizeOf(6, '\xbe\xe5', extra_size=_scanner._unicode_size*2,
                           has_gc=False)
 
     def test_None(self):
@@ -248,9 +248,9 @@ def _string_to_json(s):
 def _unicode_to_json(u):
     out = ['"']
     for c in u:
-        if c <= u'\u001f' or c > u'\u007e':
+        if c <= '\u001f' or c > '\u007e':
             out.append(r'\u%04x' % ord(c))
-        elif c in ur'\/"':
+        elif c in r'\/"':
             # Simple escape
             out.append('\\' + str(c))
         else:
@@ -286,17 +286,17 @@ class TestJSONUnicode(tests.TestCase):
         self.assertTrue(isinstance(val, str))
 
     def test_empty(self):
-        self.assertJSONUnicode('""', u'')
+        self.assertJSONUnicode('""', '')
 
     def test_ascii_chars(self):
-        self.assertJSONUnicode('"abcdefg"', u'abcdefg')
+        self.assertJSONUnicode('"abcdefg"', 'abcdefg')
 
     def test_unicode_chars(self):
         self.assertJSONUnicode(r'"\u0012\u00b5\u2030\u001f"',
-                               u'\x12\xb5\u2030\x1f')
+                               '\x12\xb5\u2030\x1f')
 
     def test_simple_escapes(self):
-        self.assertJSONUnicode(r'"\\x\/y\""', ur'\x/y"')
+        self.assertJSONUnicode(r'"\\x\/y\""', r'\x/y"')
 
 
 # A pure python implementation of dump_object_info
@@ -319,7 +319,7 @@ def _py_dump_json_obj(obj):
         content.append(', "len": %s' % (len(obj),))
     if isinstance(obj, str):
         content.append(', "value": %s' % (_string_to_json(obj[:100]),))
-    elif isinstance(obj, unicode):
+    elif isinstance(obj, str):
         content.append(', "value": %s' % (_unicode_to_json(obj[:100]),))
     elif obj is True:
         content.append(', "value": "True"')
@@ -356,7 +356,7 @@ def py_dump_object_info(obj, nodump=None):
     # Now we walk again, for certain types we dump them directly
     child_vals = []
     for ref in gc.get_referents(obj):
-        if (isinstance(ref, (str, unicode, int, types.CodeType))
+        if (isinstance(ref, (str, int, types.CodeType))
             or ref is None
             or type(ref) is object):
             # These types have no traverse func, so we dump them right away
@@ -385,7 +385,7 @@ class TestPyDumpJSONObj(tests.TestCase):
             mystr)
 
     def test_unicode(self):
-        myu = u'a \xb5nicode'
+        myu = 'a \xb5nicode'
         self.assertDumpText(
             '{"address": %d, "type": "unicode", "size": %d'
             ', "len": 9, "value": "a \\u00b5nicode", "refs": []}\n' % (
@@ -500,10 +500,10 @@ class TestDumpInfo(tests.TestCase):
         self.assertDumpInfo('abcd'*1000)
 
     def test_unicode(self):
-        self.assertDumpInfo(u'this is a short \u1234 \x00 \x1f \xffstring\n')
+        self.assertDumpInfo('this is a short \u1234 \x00 \x1f \xffstring\n')
 
     def test_long_unicode(self):
-        self.assertDumpInfo(u'abcd'*1000)
+        self.assertDumpInfo('abcd'*1000)
 
     def test_nodump(self):
         self.assertDumpInfo(None, nodump=set([None]))

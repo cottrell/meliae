@@ -112,13 +112,13 @@ class TestLoad(tests.TestCase):
         manager = loader.load(t_file, show_prog=False)
         test_dict_id = id(test_dict)
         self.assertTrue(test_dict_id in manager.objs,
-			'%s not found in %s' % (test_dict_id, manager.objs.keys()))
+			'%s not found in %s' % (test_dict_id, list(manager.objs.keys())))
 
     def test_load_one(self):
         objs = loader.load([
             '{"address": 1234, "type": "int", "size": 12, "value": 10'
             ', "refs": []}'], show_prog=False).objs
-        keys = objs.keys()
+        keys = list(objs.keys())
         self.assertEqual([1234], keys)
         obj = objs[1234]
         self.assertTrue(isinstance(obj, _loader._MemObjectProxy))
@@ -221,7 +221,7 @@ class TestMemObj(tests.TestCase):
 
     def test_to_json(self):
         manager = loader.load(_example_dump, show_prog=False, collapse=False)
-        objs = manager.objs.values()
+        objs = list(manager.objs.values())
         objs.sort(key=lambda x:x.address)
         expected = [
 '{"address": 1, "type": "tuple", "size": 20, "refs": [2, 3]}',
@@ -291,7 +291,7 @@ class TestObjManager(tests.TestCase):
         content = [
 '{"address": 2, "type": "str", "size": 25, "len": 1, "value": "a", "refs": []}',
 ]
-        for x in xrange(200):
+        for x in range(200):
             content.append('{"address": %d, "type": "tuple", "size": 20,'
                            ' "len": 2, "refs": [2, 2]}' % (x+100))
         # By default, we only track 100 parents

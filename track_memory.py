@@ -21,7 +21,7 @@ def spawn_and_track(opts, args):
     from meliae import perf_counter
     timer = perf_counter.perf_counter.get_timer()
     start = timer()
-    print 'spawning: %s' % (args,)
+    print('spawning: %s' % (args,))
     # We have to use shell=False, otherwise we end up tracking the 'cmd.exe' or
     # 'sh' process, rather than the actual process we care about.
     p = subprocess.Popen(args, shell=False)
@@ -39,11 +39,11 @@ def spawn_and_track(opts, args):
         last = now
         time.sleep(opts.sleep_time)
         if now - last_print > 3:
-            print '%8.3fs %6.1fMB %6.1fMB %8.1fMB*s         \r' % (
-                now - start, cur_mem*mb, peak_mem*mb, mem_secs*mb),
+            print('%8.3fs %6.1fMB %6.1fMB %8.1fMB*s         \r' % (
+                now - start, cur_mem*mb, peak_mem*mb, mem_secs*mb), end=' ')
             last_print = now
-    print '%8.3fs %6.1fMB %6.1fMB %8.1fMB*s          ' % (now - start,
-        cur_mem*mb, peak_mem*mb, mem_secs*mb)
+    print('%8.3fs %6.1fMB %6.1fMB %8.1fMB*s          ' % (now - start,
+        cur_mem*mb, peak_mem*mb, mem_secs*mb))
 
 
 def main(args):

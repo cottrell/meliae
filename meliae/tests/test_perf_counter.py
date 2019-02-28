@@ -89,8 +89,8 @@ class TestPerformanceCounter(tests.TestCase):
 	if cur_mem is None or peak_mem is None:
 	    # fail gracefully, though we may want a stronger assertion here
 	    return
-        self.assertTrue(isinstance(cur_mem, (int, long)))
-        self.assertTrue(isinstance(peak_mem, (int, long)))
+        self.assertTrue(isinstance(cur_mem, int))
+        self.assertTrue(isinstance(peak_mem, int))
         p.stdin.write('post')
         p.stdin.flush()
         p.stdout.read()

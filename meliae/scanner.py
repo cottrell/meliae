@@ -79,7 +79,7 @@ def dump_all_referenced(outf, obj, is_pending=False):
 def dump_gc_objects(outf, recurse_depth=1):
     """Dump everything that is available via gc.get_objects().
     """
-    if isinstance(outf, basestring):
+    if isinstance(outf, str):
         opened = True
         outf = open(outf, 'wb')
     else:
@@ -89,17 +89,17 @@ def dump_gc_objects(outf, recurse_depth=1):
     # Dump out a few specific objects, so they don't get repeated forever
     nodump = [None, True, False]
     # In current versions of python, these are all pre-cached
-    nodump.extend(xrange(-5, 256))
-    nodump.extend([chr(c) for c in xrange(256)])
-    nodump.extend([t for t in types.__dict__.itervalues()
-                      if type(t) is types.TypeType])
+    nodump.extend(range(-5, 256))
+    nodump.extend([chr(c) for c in range(256)])
+    nodump.extend([t for t in types.__dict__.values()
+                      if type(t) is type])
     nodump.extend([set, dict])
     # Some very common interned strings
     nodump.extend(('__doc__', 'self', 'operator', '__init__', 'codecs',
                    '__new__', '__builtin__', '__builtins__', 'error', 'len',
                    'errors', 'keys', 'None', '__module__', 'file', 'name', '',
                    'sys', 'True', 'False'))
-    nodump.extend((BaseException, Exception, StandardError, ValueError))
+    nodump.extend((BaseException, Exception, Exception, ValueError))
     for obj in nodump:
         _scanner.dump_object_info(outf, obj, nodump=None, recurse_depth=0)
     # Avoid dumping the all_objs list and this function as well. This helps
@@ -130,7 +130,7 @@ def dump_all_objects(outf):
     This also can be faster, because it doesn't dump the same item multiple
     times.
     """
-    if isinstance(outf, basestring):
+    if isinstance(outf, str):
         opened = True
         outf = open(outf, 'wb')
     else:
